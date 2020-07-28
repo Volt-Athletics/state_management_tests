@@ -1,6 +1,6 @@
 import { types, flow, getRoot } from 'mobx-state-tree'
 
-import service from '../service'
+import service from '../../service'
 
 const {
   model,
@@ -98,8 +98,19 @@ export const ProgramStore = model({
   customProgramMemberships: map(CustomProgramMembership),
   customPrograms: map(CustomProgram),
 })
+  .views((self) => {
+    return {
+      get root() {
+        return getRoot(self)
+      },
+      get currentProgram() {
+        const { programId } = self.root.user.profile.selectedContext
+        return self.customPrograms.get(programId) || null
+      },
+    }
+  })
   .actions((self) => {
-    const selectedContext = () => getRoot(self).user.profile.selectedContext
+    const selectedContext = () => self.root.user.profile.selectedContext
 
     const getCustomProgramMembership = flow(function* () {
       const { programMembershipId } = selectedContext()
@@ -112,8 +123,6 @@ export const ProgramStore = model({
         programMembershipId,
         customProgramMembership
       )
-
-      return customProgramMembership
     })
 
     const getProgram = flow(function* () {
@@ -123,12 +132,4 @@ export const ProgramStore = model({
     })
 
     return { getCustomProgramMembership, getProgram }
-  })
-  .views((self) => {
-    return {
-      get currentProgram() {
-        const { programId } = getRoot(self).user.profile.selectedContext
-        return self.customPrograms.get(programId) || null
-      },
-    }
   })

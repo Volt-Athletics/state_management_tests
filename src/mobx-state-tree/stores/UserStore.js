@@ -1,7 +1,7 @@
 import { types, flow } from 'mobx-state-tree'
 import { isEmpty } from 'lodash'
 
-import service from '../service'
+import service from '../../service'
 
 const {
   optional,

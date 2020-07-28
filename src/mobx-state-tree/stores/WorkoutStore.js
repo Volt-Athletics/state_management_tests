@@ -2,7 +2,7 @@ import { types, flow, getRoot } from 'mobx-state-tree'
 import parseISO from 'date-fns/parseISO'
 import isThisWeek from 'date-fns/isThisWeek'
 
-import service from '../service'
+import service from '../../service'
 
 const { model, maybeNull, string, number, boolean, array, map, union } = types
 
@@ -217,6 +217,21 @@ export const WorkoutStore = model({
   smartSetsReferenceTables: maybeNull(SmartSetsReferenceTables),
   blockDescriptions: maybeNull(BlockDescriptions),
 })
+  .views((self) => {
+    return {
+      get currentWeek() {
+        return (
+          self.workoutWeeks.find((week) =>
+            isThisWeek(parseISO(week.weekStartDate))
+          ) || null
+        )
+      },
+
+      get root() {
+        return getRoot(self)
+      },
+    }
+  })
   .actions((self) => {
     const getSmarSetsReferenceTables = flow(function* () {
       const tables = yield service.getSmarSetsReferenceTables()
@@ -229,8 +244,8 @@ export const WorkoutStore = model({
     })
 
     const getWorkoutWeeks = flow(function* () {
-      const { personId } = getRoot(self).user.profile
-      const programId = getRoot(self).program.currentProgram.id
+      const { personId } = self.root.user.profile
+      const programId = self.root.program.currentProgram.id
 
       const weeks = (yield service.getWorkoutWeeks({
         personId,
@@ -241,7 +256,7 @@ export const WorkoutStore = model({
     })
 
     const getWorkout = flow(function* (weekId) {
-      const { personId } = getRoot(self).user.profile
+      const { personId } = self.root.user.profile
       const workout = yield service.getWorkout({ personId, weekId, dayNum: 1 })
       self.workouts.set(`${workout.id}/${workout.workoutDayNum}`, workout)
     })
@@ -251,16 +266,5 @@ export const WorkoutStore = model({
       getWorkoutWeeks,
       getBlockDescriptions,
       getSmarSetsReferenceTables,
-    }
-  })
-  .views((self) => {
-    return {
-      get currentWeek() {
-        return (
-          self.workoutWeeks.find((week) =>
-            isThisWeek(parseISO(week.weekStartDate))
-          ) || null
-        )
-      },
     }
   })
