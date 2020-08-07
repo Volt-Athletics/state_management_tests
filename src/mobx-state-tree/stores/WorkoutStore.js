@@ -54,13 +54,13 @@ const WorkoutWeeks = array(
     blockTypeLabel: string,
     blockVariation: number,
     blockWithinPhase: maybeNull(number),
-    weeksInBlock: number,
+    weeksInBlock: maybeNull(number),
     weekWithinBlock: number,
     weekWithinPhase: number,
     intensityLevel: number,
     isPrimary: boolean,
     blockType: string,
-    daysInWeek: number,
+    daysInWeek: maybeNull(number),
     trainingDays: array(
       model({
         dayNum: number,
@@ -220,6 +220,8 @@ export const WorkoutStore = model({
   .views((self) => {
     return {
       get currentWeek() {
+        if (!self.workoutWeeks) return null
+
         return (
           self.workoutWeeks.find((week) =>
             isThisWeek(parseISO(week.weekStartDate))

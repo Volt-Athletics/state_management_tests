@@ -104,6 +104,7 @@ export const ProgramStore = model({
         return getRoot(self)
       },
       get currentProgram() {
+        if (!self.root.user.profile) return null
         const { programId } = self.root.user.profile.selectedContext
         return self.customPrograms.get(programId) || null
       },

@@ -237,6 +237,11 @@ export const UserStore = model({ profile: maybeNull(Profile) }).actions(
       return profile
     })
 
-    return { signIn }
+    const setUserName = (name) => {
+      if (!self.profile) return
+      self.profile.displayName = name
+    }
+
+    return { signIn, setUserName }
   }
 )
