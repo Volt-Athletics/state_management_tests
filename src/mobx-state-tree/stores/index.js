@@ -14,8 +14,9 @@ const RootModel = types
   .actions((self) => {
     const fetchVitalData = flow(function* () {
       try {
-        if (!self.user.profile)
+        if (!self.user.profile) {
           yield self.user.signIn('ia_default_0_0@v.com', '11111111')
+        }
 
         yield Promise.all([
           self.program.getCustomProgramMembership(),

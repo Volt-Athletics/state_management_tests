@@ -2,8 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import './app.css'
-import App from './mobx-state-tree'
-// import App from './redux-toolkit'
+// import App from './mobx-state-tree'
+import App from './redux-toolkit'
 
 import * as serviceWorker from './serviceWorker'
 

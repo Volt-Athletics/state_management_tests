@@ -1,19 +1,15 @@
 import React from 'react'
 import { Provider, connect } from 'react-redux'
 
-import rootStore from './store'
+import rootStore, { fetchVitalData } from './store'
 import { signIn } from './store/user'
+import UserInfo from './components/UserInfo'
 
 const AppView = () => (
   <Provider store={rootStore}>
     <div>
-      <button
-        onClick={(e) => {
-          rootStore.dispatch(signIn('ia_default_0_0@v.com', '11111111'))
-        }}
-      >
-        Sign In
-      </button>
+      <button onClick={fetchVitalData}>Sign In</button>
+      <UserInfo />
     </div>
   </Provider>
 )

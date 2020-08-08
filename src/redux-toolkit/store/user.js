@@ -11,10 +11,17 @@ const userSlice = createSlice({
       draft.profile = payload
       return draft
     }),
+    updateUserName: produce((draft, { payload }) => {
+      if (!draft.profile) return draft
+      draft.profile.displayName = payload
+      return draft
+    }),
   },
 })
 
-const { getProfileSucceeded } = userSlice.actions
+const { getProfileSucceeded, updateUserName } = userSlice.actions
+
+export { updateUserName }
 
 export const signIn = (email, password) => async (dispatch) => {
   try {
@@ -27,10 +34,10 @@ export const signIn = (email, password) => async (dispatch) => {
 
 export const selectProfile = (state) => state.user.profile
 
-export const selectOrganizations = createSelector(
-  selectProfile,
-  (profile) => profile.organizations
-)
+export const selectOrganizations = createSelector(selectProfile, (profile) => {
+  if (!profile) return null
+  return profile.organizations
+})
 
 export const selectSelfDirectedTrainingContexts = createSelector(
   selectOrganizations,
@@ -47,6 +54,7 @@ export const selectCoachContexts = createSelector(selectOrganizations, (orgs) =>
 )
 
 export const selectIndyContexts = createSelector(selectProfile, (profile) => {
+  if (!profile) return null
   const {
     independentAthlete: { trainingPrograms = [] },
   } = profile
@@ -60,7 +68,9 @@ export const selectIsIneligibleForIndySetup = createSelector(
   selectCoachContexts,
   selectSelfDirectedTrainingContexts,
   (...args) => {
-    return [...args].some((contextGroup) => !!contextGroup.length)
+    return [...args]
+      .filter(Boolean)
+      .some((contextGroup) => !!contextGroup.length)
   }
 )
 
@@ -68,7 +78,7 @@ export const selectPendingIndySetupContext = createSelector(
   selectIsIneligibleForIndySetup,
   selectProfile,
   (isIneligibleForIndySetup, profile) => {
-    if (isIneligibleForIndySetup) return null
+    if (isIneligibleForIndySetup || !profile) return null
 
     const {
       independentAthlete: { pendingIndependentSetup },
@@ -94,13 +104,41 @@ export const selectSupportedContexts = createSelector(
     selfDirectedTrainingContexts
   ) => {
     const supportedContexts = [
-      ...indyContexts,
-      ...teamPlayerContexts,
-      ...selfDirectedTrainingContexts,
+      ...(indyContexts || []),
+      ...(teamPlayerContexts || []),
+      ...(selfDirectedTrainingContexts || []),
     ]
 
     pendingIndySetupContex && supportedContexts.push(pendingIndySetupContex)
     return supportedContexts
+  }
+)
+
+export const selectClientSelectedContextToken = createSelector(
+  selectSupportedContexts,
+  (supportedContexts) => {
+    const currentContext = supportedContexts.find(
+      (context) => context['selected?']
+    )
+
+    if (currentContext) {
+      return currentContext.contextToken
+    } else if (supportedContexts.length) {
+      // likely a coach as they will not be included in supportedContexts
+      // If they do have any supported contexts, default to using the first one
+      return supportedContexts[0].contextToken
+    }
+
+    return null
+  }
+)
+
+export const selectSelectedContext = createSelector(
+  selectClientSelectedContextToken,
+  selectSupportedContexts,
+  (token, supportedContexts) => {
+    if (!token) return null
+    return supportedContexts.find((context) => context.contextToken === token)
   }
 )
 

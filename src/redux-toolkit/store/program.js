@@ -33,12 +33,13 @@ export const getCustomProgramMembership = createAsyncThunk(
   }
 )
 
-export const getProgram = createAsyncThunk(
-  getCustomProgramSucceeded.type,
-  async (programId) => {
+export const getProgram = (programId) => async (dispatch) => {
+  try {
     const program = await service.getProgram(programId)
-    return program
+    dispatch(getCustomProgramSucceeded(program))
+  } catch (err) {
+    console.err(err)
   }
-)
+}
 
 export default programSlice
